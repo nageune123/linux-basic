@@ -326,8 +326,27 @@ Public EC2 SSH 접속이 되지 않는 상황도 확인했다.
 Security Group의 SSH Source를 현재 '내 IP'로
 갱신한 후 Public EC2 SSH 접속이 정상적으로 되는 것을 확인했다.
 
-Private EC2까지의 ProxyJump 최종 연결 확인은
-다음 단계에서 계속 진행한다.
+SSH ProxyJump를 사용하여 Public EC2를 경유한 뒤
+Private EC2에 정상적으로 접속되는 것을 확인했다.
+
+이를 통해 Private Key를 Public EC2에 복사하지 않고도
+내 PC의 키를 사용하여 Private EC2에 안전하게
+접속할 수 있다는 것을 확인했다.
+
+ProxyJump 접속 결과:
+
+내 PC
+   |
+   | SSH ProxyJump
+   v
+Public EC2
+   |
+   | Private IP
+   v
+Private EC2
+
+Public EC2를 Jump Server로 사용하여
+Public IP가 없는 Private EC2에 정상적으로 접속했다.
 
 
 ---
