@@ -1,0 +1,72 @@
+AWS Day 18 - Security Group and NACL 점검
+
+목표
+
+ALB와 Private EC2의 통신 규칙을 최소 권한으로 점검하고, SSH·HTTP 연결을 검증한다.
+
+Security Group 점검
+
+ALB 보안 그룹 practice-alb-sg
+
+인바운드: HTTP/TCP 80, 0.0.0.0/0
+
+아웃바운드: 모든 트래픽, 0.0.0.0/0
+
+인터넷 사용자가 ALB로 접속하고, ALB가 대상 서버로 요청을 전달할 수 있는 설정이다.
+
+Private EC2 보안 그룹 practice-private-sg
+
+SSH/TCP 22: Public EC2 보안 그룹에서 허용
+
+HTTP/TCP 80: ALB 보안 그룹에서 허용
+
+아웃바운드: 모든 트래픽, 0.0.0.0/0
+
+ALB 보안 그룹에서 들어오는 불필요한 SSH 22 규칙 삭제
+
+보안 그룹은 IP 주소뿐 아니라 다른 보안 그룹을 소스로 지정할 수 있다. 소스 보안 그룹에 연결된 네트워크 인터페이스의 트래픽만 허용한다.
+
+NACL 점검
+
+NACL: acl-0a23d501d721811f7
+
+VPC: practice-vpc
+
+기본 NACL, 3개 서브넷에 연결
+
+인바운드·아웃바운드 모두 규칙 100에서 모든 트래픽 허용
+
+규칙 *는 나머지 트래픽 거부
+
+기본 NACL은 양방향을 허용하므로 별도 수정하지 않았다. NACL은 Stateless라 인바운드와 아웃바운드를 각각 검사하고, 보안 그룹은 Stateful이라 허용된 연결의 응답을 자동으로 허용한다.
+
+통신 검증
+
+Public EC2에 SSH로 접속했다.
+
+ProxyCommand를 사용해 Private EC2(10.0.2.129)에 SSH로 접속했다.
+
+로컬 터미널에서 ALB DNS로 HTTP 헤더를 확인했다.
+
+curl -I http://practice-alb-day12-321307410.ap-northeast-2.elb.amazonaws.com
+
+결과:
+
+HTTP/1.1 200 OK
+server: nginx/1.24.0 (Ubuntu)
+
+ALB가 정상 대상 Private EC2의 Nginx 응답을 전달했다.
+
+핵심
+
+서브넷에는 NACL, EC2 네트워크 인터페이스에는 Security Group이 적용된다.
+
+ALB는 외부 HTTP 80을 받고, Private EC2는 ALB 보안 그룹의 HTTP 80만 허용한다.
+
+SSH는 Public EC2 보안 그룹을 소스로 제한해 Bastion 경유 접속만 허용한다.
+
+연결 문제는 Route Table → NACL → Security Group → 서버 포트 순서로 확인한다.
+
+이력서 문장
+
+AWS ALB·Private EC2의 Security Group과 NACL 규칙을 점검하고, Bastion 경유 SSH 및 ALB 기반 Private Nginx 통신을 검증했다.
